@@ -2,12 +2,12 @@
   "name": "paganradio_desktopclient",
   "version": "0.1.0",
   "description": "pagan radio tool for pagans only",
-  "author" : "pagans",
+  "author": "pagans",
   "main": "public/electron.js",
-  "build" : {
-    "appId" : "pagan.radio"
+  "build": {
+    "appId": "pagan.radio"
   },
-  "homepage" : "./",
+  "homepage": "./",
   "dependencies": {
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
@@ -17,7 +17,8 @@
     "eslint": "^6.8.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-scripts": "3.4.1"
+    "react-scripts": "3.4.1",
+    "socket.io-client": "^2.3.0"
   },
   "scripts": {
     "react-start": "react-scripts start",

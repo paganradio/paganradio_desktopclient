@@ -8,35 +8,29 @@ class AudioSourceControl extends React.Component{
         this.state = 
         {
             outputEnabled : false,
-            streamSocketId : props.source,
-            source : this.props.source,
-            blobs : []
+            data : this.props.data,
+            blobs : [],
+            recorder : {}// recorder for single stream
         }
     }
-    recorder
 
-    handleStream(stream)
+    async handleStream(stream)
     {
-        console.log("handleStream");
-        this.recorder = new MediaRecorder(stream, {mimeType: 'video/webm;codecs=vp9'});
-        this.recorder.ondataavailable = (event) =>
+        // TODO clear blobs?
+        this.setState({recorder: new MediaRecorder(stream, {mimeType: 'video/webm;codecs=vp9'})});
+        this.state.recorder.ondataavailable = (event) =>
         {
             this.state.blobs.push(event.data);
         }
-        this.recorder.start(100);
-        console.log(this.recorder);
-
-    }
-    handleError(e)
-    {
-        console.log(e);
+        // pols every 100 milisecond 
+        this.state.recorder.start(100);
+        this.props.callbacks.parentStreamSocket(this.state.data.source.id);
     }
     async startRecord()
     {   
         console.log("start record")
         try
         {
-            console.log(this.state.source.id);
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     mandatory: {
@@ -46,7 +40,7 @@ class AudioSourceControl extends React.Component{
                 video: {
                   mandatory: {
                     chromeMediaSource: 'desktop',
-                    chromeMediaSourceId: this.state.source.id,
+                    chromeMediaSourceId: this.state.data.source.id,
                     minWidth: 1280,
                     maxWidth: 1280,
                     minHeight: 720,
@@ -58,21 +52,18 @@ class AudioSourceControl extends React.Component{
         }
         catch (err)
         {
-            this.handleError(err);
+            console.log(err);
         }
     }
     stopRecord()
     {
-        this.recorder.stop();
-        console.log(this.recorder);
-        console.log(this.state.blobs);
+        this.state.recorder.stop();
     }
 
     toggleOutput = () => {
         this.setState({outputEnabled : !this.state.outputEnabled}, () =>
         {
             console.log(this.state.outputEnabled);
-
             if (this.state.outputEnabled === true)
             {
                 this.startRecord();
@@ -92,8 +83,8 @@ class AudioSourceControl extends React.Component{
         return(
             <div>
             <audio className = "player"></audio>
-            <button className = "AudioSourceControl" onClick = {this.toggleOutput}>
-                {this.state.source.name}
+            <button className = "AudioSourceControl" onClick = {() => this.toggleOutput()}>
+                {this.state.data.source.name}
             </button>
             </div>
         );
@@ -101,6 +92,7 @@ class AudioSourceControl extends React.Component{
 
 }
 
+// this is container for a list of media sources from desktop. Might need to be refactored to contain output devices instead.
 export default class AudioSourceControls extends React.Component {
     constructor(props)
     {
@@ -111,26 +103,29 @@ export default class AudioSourceControls extends React.Component {
         };
         this.setSources();
     }
-    setSources()
+    // this is called from single audio source control with id of window, passes control to parent
+    streamSocket(id)
     {
-        var that = this;
-        desktopCapturer.getSources({ types: ['window'] })
-        .then(async audioWindows => {
-            for (const audioWindow of audioWindows)
-            {
-                that.state.sources.push(audioWindow);
-            }
-          })
-        .then(() => 
+        this.props.callbacks.parentUploadStream(id);
+    }
+
+    async setSources()
+    {
+        let audioWindows = await desktopCapturer.getSources({ types: ['window'] });
+        for (const audioWindow of audioWindows)
         {
-            that.setState((state) =>{
+            this.state.sources.push(audioWindow);
+        }
+        this.setState((state) =>{
                 return {sourcesReady : true}
             });
-        });
     }
     renderSource(value)
     {
-        return <AudioSourceControl key = {value.id} source = {value}/>
+        return <AudioSourceControl 
+        key = {value.id} 
+        data = {{source : value}}
+        callbacks = {{parentStreamSocket : (id) => this.streamSocket(id)}}/>
     }
 
     render()
