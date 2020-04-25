@@ -6,4 +6,6 @@ In the project directory, you can run:
 
 Sita komanda paleis pagoniu epsa
 
+### `npm run build`
 
+production build, saved in /dist
