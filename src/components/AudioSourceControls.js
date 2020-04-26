@@ -17,14 +17,14 @@ class AudioSourceControl extends React.Component{
     async handleStream(stream)
     {
         // TODO clear blobs?
-        this.setState({recorder: new MediaRecorder(stream, {mimeType: 'video/webm;codecs=vp9'})});
-        this.state.recorder.ondataavailable = (event) =>
-        {
-            this.state.blobs.push(event.data);
-        }
-        // pols every 100 milisecond 
-        this.state.recorder.start(100);
-        this.props.callbacks.parentStreamSocket(this.state.data.source.id);
+        //setState({recorder: new MediaRecorder(stream, {mimeType: 'video/webm;codecs=vp9'})});
+        //state.recorder.ondataavailable = (event) =>
+        //
+        //his.state.blobs.push(event.data);
+        //
+        //ls every 100 milisecond 
+        //state.recorder.start(100);
+        this.props.callbacks.parentStreamSocket(this.state.data.source.id, stream);
     }
     async startRecord()
     {   
@@ -104,9 +104,9 @@ export default class AudioSourceControls extends React.Component {
         this.setSources();
     }
     // this is called from single audio source control with id of window, passes control to parent
-    streamSocket(id)
+    streamSocket(id, stream)
     {
-        this.props.callbacks.parentUploadStream(id);
+        this.props.callbacks.parentUploadStream(id, stream);
     }
 
     async setSources()
@@ -125,7 +125,7 @@ export default class AudioSourceControls extends React.Component {
         return <AudioSourceControl 
         key = {value.id} 
         data = {{source : value}}
-        callbacks = {{parentStreamSocket : (id) => this.streamSocket(id)}}/>
+        callbacks = {{parentStreamSocket : (id, stream) => this.streamSocket(id, stream)}}/>
     }
 
     render()
